@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My-mony</title>
+<style>
+body{font-family:system-ui,sans-serif;margin:0;background:#0b1026;color:#e8ebff;text-align:center}
+main{max-width:440px;margin:0 auto;padding:48px 24px}
+h1{font-size:2rem;margin:0 0 4px}
+a.btn{display:block;margin:24px 0 12px;padding:18px;border-radius:16px;background:#4f6bff;color:#fff;font-size:1.2rem;text-decoration:none}
+a.btn.off{background:#39406b;pointer-events:none}
+p{line-height:1.6;color:#b9c0e6}small{color:#8a92bd}
+h2{font-size:1.1rem;margin:28px 0 8px}h3{font-size:1rem;margin:16px 0 6px}details{text-align:left;margin-top:20px}summary{cursor:pointer;color:#b9c0e6}
+pre{white-space:pre-wrap;text-align:left;background:#131a3a;border-radius:12px;padding:12px;font:13px/1.5 system-ui,sans-serif;color:#cfd5f5}
+</style></head>
+<body><main>
+<h1>My-mony</h1>
+<p id="ver">Looking for the newest version...</p>
+<a id="dl" class="btn off" href="https://github.com/einawi/My-mony-releases/releases/latest">Download</a>
+<p>Open the downloaded file and tap Install. If Android asks, allow installing from this browser.</p>
+<small>Already installed? The app offers the update by itself when you open it.</small>
+<h2 id="whatnew" hidden>What is new</h2>
+<pre id="notes" hidden></pre>
+<div id="older"></div>
+</main>
+<script>
+function esc(t){return String(t).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+fetch('https://api.github.com/repos/einawi/My-mony-releases/releases?per_page=10').then(function(r){return r.json();}).then(function(all){
+  var rel=(all||[]).filter(function(j){return !j.draft&&(j.assets||[]).some(function(a){return /\.apk$/i.test(a.name);});});
+  var ver=document.getElementById('ver'), dl=document.getElementById('dl');
+  if(!rel.length){ver.textContent='No version has been published yet.';return;}
+  var j=rel[0], apk=j.assets.filter(function(a){return /\.apk$/i.test(a.name);})[0];
+  ver.textContent='Version '+(j.name||j.tag_name)+' ('+Math.round(apk.size/1048576)+' MB)';
+  dl.href=apk.browser_download_url; dl.className='btn';
+  if(j.body){document.getElementById('whatnew').hidden=false;var n=document.getElementById('notes');n.textContent=j.body;n.hidden=false;}
+  var older=rel.slice(1).filter(function(x){return x.body;});
+  if(older.length){
+    var h='<details><summary>Earlier versions</summary>';
+    older.forEach(function(x){h+='<h3>'+esc(x.name||x.tag_name)+' <small>'+esc((x.published_at||'').slice(0,10))+'</small></h3><pre>'+esc(x.body)+'</pre>';});
+    document.getElementById('older').innerHTML=h+'</details>';
+  }
+}).catch(function(){document.getElementById('ver').textContent='Could not reach GitHub. Try again in a moment.';});
+</script>
+</body></html>
